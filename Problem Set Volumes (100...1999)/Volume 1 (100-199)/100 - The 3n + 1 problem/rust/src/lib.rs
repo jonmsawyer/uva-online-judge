@@ -102,7 +102,7 @@ impl<'a> Config<'a> {
 ///  5. else n ← n/2
 ///  6. GOTO 2
 ///
-/// Given the input 22, the following sequence of numbers will be:
+/// Given the input `22`, the following sequence of numbers will be:
 ///
 /// ```
 /// use rust::cycles;
@@ -137,6 +137,22 @@ pub fn cycles(mut n: u32) -> Vec<u32> {
 /// Returns a 3-tuple of the initial `Config` parameter `i`, and `j`,
 /// and the `result` of the maximum length for all cycle lengths between
 /// `i`, and `j`.
+///
+/// Given the `config` `Config { inputs: vec!["1", "10"], i: 1, j: 10 }`,
+/// compute the max numner of cycle lengths between `config.i` and `config.j`
+/// (inclusive) cycles. This `Config` returns `(1, 10, 20)`:
+///
+/// ```
+/// use rust::max_cycles;
+/// let config = match Config::new("1 10\r\n") {
+///     Ok(config) => config,
+///     Err(error) => Config { inputs: vec![], i: 0, j: 0 },
+/// };
+/// let (i, j, result) = max_cycles(config);
+/// assert_eq!(i, 1);
+/// assert_eq!(j, 10);
+/// assert_eq!(result, 20);
+/// ```
 pub fn max_cycles(config: Config) -> (u32, u32, u32) {
     // We store the maximum size of each cycle length here.
     let mut result: usize = 0;
