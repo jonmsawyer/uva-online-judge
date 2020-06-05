@@ -109,9 +109,7 @@ impl Command {
     /// assert_eq!(command.b, 3);
     /// ```
     pub fn parse(input: &String) -> Command {
-        // Convert the `input` string to lowercase, trim the whitespace
-        // from the begging and end, and convert it back into a `String`.
-        let input = input.to_lowercase().trim().to_string();
+        let input = input.trim().to_lowercase();
         
         // Default states.
         let error_msg = String::new();
@@ -132,7 +130,6 @@ impl Command {
                 a,
                 b
             },
-            
             "print" | "p" => return Command {
                 error_msg,
                 state: CommandState::Print,
@@ -141,7 +138,6 @@ impl Command {
                 a,
                 b
             },
-            
             _ => {},
         }
         
