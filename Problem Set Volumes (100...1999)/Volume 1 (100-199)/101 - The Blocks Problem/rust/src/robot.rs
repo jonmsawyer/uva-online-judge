@@ -158,7 +158,7 @@ impl Robot {
             buf.read_line(&mut input)?;
             
             // Parse the input command.
-            let command = Command::parse(input.clone());
+            let command = Command::parse(&input);
             
             // Based on the state of the parsed command, we match the
             // command state with its appropriate arms to produce the
@@ -168,7 +168,7 @@ impl Robot {
                 CommandState::Init => eprintln!("Command is init??"),
                 
                 // Print the state of the blocks world onto
-                // `std::io::stdout`
+                // `std::io::stdout`.
                 CommandState::Print => self.blocks.print(),
                 
                 // Print the state of the blocks world onto
