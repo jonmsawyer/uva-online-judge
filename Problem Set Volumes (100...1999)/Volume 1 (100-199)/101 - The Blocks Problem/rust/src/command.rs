@@ -120,7 +120,7 @@ impl Command {
         let mut b = -1;
         
         // If the user inputs `quit`, `q`, `print`, or `p`, return the
-        // appropriate command instances with the proper states.
+        // appropriate command instance with the proper states.
         match input.as_str() {
             "quit" | "q" => return Command {
                 error_msg,
