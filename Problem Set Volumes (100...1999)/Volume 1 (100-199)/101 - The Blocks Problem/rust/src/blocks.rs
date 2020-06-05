@@ -203,8 +203,6 @@ impl Blocks {
     fn move_a_onto_b(&mut self) -> &mut Self {
         let (a, b) = self.get_a_and_b();
         
-        //println!("\nmove {} onto {}", a, b);
-        
         if self.parameters_invalid() {
             return self.reset_state();
         }
@@ -243,8 +241,6 @@ impl Blocks {
         // `a` onto `b`.
         self.world[k as usize].push(block_a);
         
-        //self.print();
-        
         self
     }
     
@@ -257,13 +253,9 @@ impl Blocks {
     fn move_a_over_b(&mut self) -> &mut Self {
         let (a, b) = self.get_a_and_b();
         
-        //println!("\nmove {} over {}", a, b);
-        
         if self.parameters_invalid() {
             return self.reset_state();
         }
-        
-        //println!("after parameters invalid()");
         
         // Get the coordinates of blocks `a` and `b`. This corresponds
         // to the `self.world` vec of vecs.
@@ -288,8 +280,6 @@ impl Blocks {
         // Put block `a` on top of the stack containing block `b`.
         self.world[k as usize].push(block_a);
         
-        //self.print();
-        
         self
     }
     
@@ -304,8 +294,6 @@ impl Blocks {
     /// block `a` retain their order when moved.
     fn pile_a_onto_b(&mut self) -> &mut Self {
         let (a, b) = self.get_a_and_b();
-        
-        //println!("\npile {} onto {}", a, b);
         
         if self.parameters_invalid() {
             return self.reset_state();
@@ -345,8 +333,6 @@ impl Blocks {
         // block `b`.
         self.world[k as usize].extend(right_a_vec);
         
-        //self.print();
-        
         self
     }
     
@@ -360,8 +346,6 @@ impl Blocks {
     /// order when moved.
     fn pile_a_over_b(&mut self) -> &mut Self {
         let (a, b) = self.get_a_and_b();
-        
-        //println!("\npile {} over {}", a, b);
         
         if self.parameters_invalid() {
             return self.reset_state();
@@ -391,8 +375,6 @@ impl Blocks {
         // block `b`.
         self.world[k as usize].extend(right_a_vec);
         
-        //self.print();
-        
         self
     }
     
@@ -401,13 +383,13 @@ impl Blocks {
     ///
     /// This can happen when:
     ///
-    ///   * `a` and `b` are equal
-    ///   * `a` and `b` are in the same stack
-    ///   * `a` or `b` are < 0 (-1 for None)
-    ///   * `over_b()` or `onto_b()` are called without
-    ///     the appropriate state
-    ///   * `move_a()` or `pile_a()` are called without
-    ///     the appropriate state
+    ///  * `a` and `b` are equal
+    ///  * `a` and `b` are in the same stack
+    ///  * `a` or `b` are < 0 (-1 for None)
+    ///  * `over_b()` or `onto_b()` are called without
+    ///    the appropriate state
+    ///  * `move_a()` or `pile_a()` are called without
+    ///    the appropriate state
     fn reset_state(&mut self) -> &mut Self {
         self.state = BlockState::Init;
         self.a = None;
