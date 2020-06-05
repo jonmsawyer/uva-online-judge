@@ -1,38 +1,22 @@
-use rust::{Blocks, BlockState};
+#![allow(unused_imports)]
+#![allow(unused_must_use)]
 
-fn main() {
-    let mut blocks = match Blocks::new(8) {
-        Ok(blocks) => blocks,
-        Err(_) => Blocks {
-            state: BlockState::Init,
-            world: vec![vec![0]],
-            a: None,
-            b: None,
-        },
-    };
+use std::io;
+use std::fs::File;
+
+use rust::robot::Robot;
+
+fn main() -> std::io::Result<()> {
+    let stdin = io::stdin();
+    let mut _reader = stdin.lock();
     
-    blocks.print();
+    // Uncomment these two lines to read the commands
+    // from a file called "input.txt". TODO: pass in file
+    // as parameters to the execution of `rust.exe`.
+    //let fh = File::open("input.txt")?;
+    //let mut _reader = io::BufReader::new(fh);
     
-    blocks.move_a(1).onto_b(2);
-    blocks.move_a(2).onto_b(0);
-    blocks.move_a(3).onto_b(1);
-    blocks.move_a(0).onto_b(3);
-    blocks.move_a(1).onto_b(0);
+    Robot::run(&mut _reader).unwrap();
     
-    blocks.move_a(1).over_b(2);
-    blocks.move_a(3).over_b(0);
-    blocks.move_a(0).over_b(2);
-    
-    blocks.pile_a(1).onto_b(3);
-    blocks.pile_a(0).onto_b(2);
-    blocks.pile_a(3).onto_b(2);
-    blocks.pile_a(33).onto_b(45);
-    
-    blocks.pile_a(7).over_b(6);
-    blocks.pile_a(6).over_b(5);
-    blocks.pile_a(3).over_b(5);
-    blocks.pile_a(5).over_b(0);
-    
-    blocks.move_a(0).over_b(4);
-    blocks.pile_a(4).over_b(0);
+    Ok(())
 }
