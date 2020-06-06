@@ -47,7 +47,7 @@ pub enum CommandState {
 /// `Command` struct that, when initialized, holds the state and
 /// parameters of commands such as `move a over b`, where `a` and `b`
 /// are valid block numbers.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Command {
     /// When an error occurs during parsing, a `String` error message
     /// will be populated here. If this is set to a non-empty string,
@@ -235,5 +235,148 @@ impl Command {
         }
         
         Command { error_msg, state, from, to, a, b }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    
+    #[test]
+    fn command_parse_move_1_onto_3() {
+        let input = String::from("move 1 onto 3\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(command.state, CommandState::Do);
+        assert_eq!(command.from, CommandState::Move);
+        assert_eq!(command.to, CommandState::Onto);
+        assert_eq!(command.a, 1);
+        assert_eq!(command.b, 3);
+    }
+    
+    #[test]
+    fn command_parse_move_3_over_10() {
+        let input = String::from("move 3 over 10\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(command.state, CommandState::Do);
+        assert_eq!(command.from, CommandState::Move);
+        assert_eq!(command.to, CommandState::Over);
+        assert_eq!(command.a, 3);
+        assert_eq!(command.b, 10);
+    }
+    
+    #[test]
+    fn command_parse_pile_2_onto_100() {
+        let input = String::from("pile 2 onto 100\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(command.state, CommandState::Do);
+        assert_eq!(command.from, CommandState::Pile);
+        assert_eq!(command.to, CommandState::Onto);
+        assert_eq!(command.a, 2);
+        assert_eq!(command.b, 100);
+    }
+    
+    #[test]
+    fn command_parse_pile_200_over_0() {
+        let input = String::from("pile 200 over 0\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(command.state, CommandState::Do);
+        assert_eq!(command.from, CommandState::Pile);
+        assert_eq!(command.to, CommandState::Over);
+        assert_eq!(command.a, 200);
+        assert_eq!(command.b, 0);
+    }
+    
+    #[test]
+    fn command_parse_invalid_number_of_parameters() {
+        let input = String::from("move 1 onto 3 right now\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(
+            command,
+            Command {
+                error_msg: format!("Error! Expected 4 input parameters, got 6"),
+                state: CommandState::Error,
+                from: CommandState::Init,
+                to: CommandState::Init,
+                a: -1,
+                b: -1,
+            }
+        );
+    }
+    
+    #[test]
+    fn command_first_part_invalid_command() {
+        let input = String::from("asdf 1 qwer 3\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(
+            command,
+            Command {
+                error_msg: format!("Error! `asdf` is not a valid command."),
+                state: CommandState::Error,
+                from: CommandState::Init,
+                to: CommandState::Init,
+                a: -1,
+                b: -1,
+            }
+        );
+    }
+    
+    #[test]
+    fn command_third_part_invalid_command() {
+        let input = String::from("move 1 qwer 3\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(
+            command,
+            Command {
+                error_msg: format!("Error! `qwer` is not a valid command."),
+                state: CommandState::Error,
+                from: CommandState::Init,
+                to: CommandState::Init,
+                a: -1,
+                b: -1,
+            }
+        );
+    }
+    
+    #[test]
+    fn command_second_part_invalid_positive_integer() {
+        let input = String::from("move -1 onto 3\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(
+            command,
+            Command {
+                error_msg: format!("Error! `-1` is not a valid positive integer."),
+                state: CommandState::Error,
+                from: CommandState::Init,
+                to: CommandState::Init,
+                a: -1,
+                b: -1,
+            }
+        );
+    }
+    
+    #[test]
+    fn command_fourth_part_invalid_positive_integer() {
+        let input = String::from("move 2 onto -3\r\n");
+        let command = Command::parse(&input);
+        
+        assert_eq!(
+            command,
+            Command {
+                error_msg: format!("Error! `-3` is not a valid positive integer."),
+                state: CommandState::Error,
+                from: CommandState::Init,
+                to: CommandState::Init,
+                a: 2,
+                b: -1,
+            }
+        );
     }
 }

@@ -12,7 +12,7 @@ fn main() -> std::io::Result<()> {
     
     // Uncomment these two lines to read the commands
     // from a file called "input.txt". TODO: pass in file
-    // as parameters to the execution of `rust.exe`.
+    // as parameters to the execution of this program.
     //let fh = File::open("input.txt")?;
     //let mut _reader = io::BufReader::new(fh);
     

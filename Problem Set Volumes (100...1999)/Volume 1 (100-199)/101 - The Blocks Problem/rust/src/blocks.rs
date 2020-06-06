@@ -486,6 +486,10 @@ impl Blocks {
     }
 }
 
+//
+// Tests.
+//
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -686,12 +690,14 @@ mod test {
         // Final state should be `BlockState::Init`.
         blocks.move_a(3).pile_a(5);
         assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
         assert_eq!(blocks.state, BlockState::Init);
         
         // Chain `pile_a()`, `move_a(`), and `pile_a()` methods.
         // Final state should be `BlockState::Pile`.
         blocks.pile_a(3).move_a(5).pile_a(7);
         assert_eq!(blocks.a, Some(7));
+        assert_eq!(blocks.b, None);
         assert_eq!(blocks.state, BlockState::Pile);
         
         // Final state should be `BlockState::Init`.
@@ -701,12 +707,758 @@ mod test {
         // Final state should be `BlockState::Move`.
         blocks.move_a(3).pile_a(5).move_a(7);
         assert_eq!(blocks.a, Some(7));
+        assert_eq!(blocks.b, None);
         assert_eq!(blocks.state, BlockState::Move);
         
         // Call third set of `pile_a()` methods.
         // Final state should be `BlockState::Init`.
         blocks.pile_a(5);
         assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
         assert_eq!(blocks.state, BlockState::Init);
+    }
+    
+    #[test]
+    fn blocks_onto_b_and_over_b() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Verify `blocks.world`
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        
+        // Call `onto_b()` from the Init state. Final state
+        // should be `BlockState::Init`.
+        blocks.onto_b(5);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        assert_eq!(blocks.state, BlockState::Init);
+        
+        // Call `over_b()` from the Init state. Final state
+        // should be `BlockState::Init`.
+        blocks.over_b(1);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        assert_eq!(blocks.state, BlockState::Init);
+    }
+    
+    #[test]
+    fn blocks_move_a_over_b() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Test blocks initial state.
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 1 over 3`
+        blocks.move_a(1).over_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2],
+                vec![3, 1],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 3 over 2`
+        blocks.move_a(3).over_b(2);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2, 3],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 9 over 3`
+        blocks.move_a(9).over_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2, 3, 9],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 2 over 0`
+        blocks.move_a(2).over_b(0);
+        assert_eq!(
+            vec![
+                vec![0, 2],
+                vec![1],
+                vec![],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 3 over 2; move 2 over 1`
+        blocks.move_a(3).over_b(2).move_a(2).over_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 2],
+                vec![],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 9 over 1`
+        blocks.move_a(9).over_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 2, 9],
+                vec![],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+    }
+    
+    #[test]
+    fn blocks_move_a_onto_b() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Test blocks initial state.
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 1 onto 3`
+        blocks.move_a(1).onto_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2],
+                vec![3, 1],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 3 onto 2`
+        blocks.move_a(3).onto_b(2);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2, 3],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 9 onto 3`
+        blocks.move_a(9).onto_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2, 3, 9],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 2 onto 0`
+        blocks.move_a(2).onto_b(0);
+        assert_eq!(
+            vec![
+                vec![0, 2],
+                vec![1],
+                vec![],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 3 onto 2; move 2 onto 1`
+        blocks.move_a(3).onto_b(2).move_a(2).onto_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 2],
+                vec![],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `move 9 onto 1`
+        blocks.move_a(9).onto_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 9],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+    }
+    
+    #[test]
+    fn blocks_pile_a_over_b() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Test blocks initial state.
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 1 over 3`
+        blocks.pile_a(1).over_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2],
+                vec![3, 1],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 3 over 2`
+        blocks.pile_a(3).over_b(2);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2, 3, 1],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 9 over 3`
+        blocks.pile_a(9).over_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2, 3, 1, 9],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 2 over 0`
+        blocks.pile_a(2).over_b(0);
+        assert_eq!(
+            vec![
+                vec![0, 2, 3, 1, 9],
+                vec![],
+                vec![],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 3 over 2; pile 2 over 1`
+        blocks.pile_a(3).over_b(2).pile_a(2).over_b(1);
+        assert_eq!(
+            vec![
+                vec![0, 2, 3, 1, 9],
+                vec![],
+                vec![],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 3 over 4`
+        blocks.pile_a(3).over_b(4);
+        assert_eq!(
+            vec![
+                vec![0, 2],
+                vec![],
+                vec![],
+                vec![],
+                vec![4, 3, 1, 9],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+    }
+    
+    #[test]
+    fn blocks_pile_a_onto_b() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Test blocks initial state.
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 1 onto 3`
+        blocks.pile_a(1).onto_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2],
+                vec![3, 1],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 3 onto 2`
+        blocks.pile_a(3).onto_b(2);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![],
+                vec![2, 3, 1],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 9 onto 3`
+        blocks.pile_a(9).onto_b(3);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2, 3, 9],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 2 onto 0`
+        blocks.pile_a(2).onto_b(0);
+        assert_eq!(
+            vec![
+                vec![0, 2, 3, 9],
+                vec![1],
+                vec![],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 3 onto 2; pile 2 onto 1`
+        blocks.pile_a(3).onto_b(2).pile_a(2).onto_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 2, 3, 9],
+                vec![],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test `pile 9 onto 1`
+        blocks.pile_a(9).onto_b(1);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 2, 3, 9],
+                vec![],
+                vec![],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+    }
+    
+    #[test]
+    fn blocks_problem_input_output() {
+        let mut blocks = match Blocks::new(10) {
+            Ok(blocks) => blocks,
+            Err(_) => Blocks {
+                state: BlockState::Init,
+                world: vec![vec![0]],
+                a: None,
+                b: None,
+            }
+        };
+        
+        // Test blocks initial state.
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1],
+                vec![2],
+                vec![3],
+                vec![4],
+                vec![5],
+                vec![6],
+                vec![7],
+                vec![8],
+                vec![9],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
+        
+        // Test the sample input as given by the problem instructions.
+        blocks.move_a(9).onto_b(1)
+              .move_a(8).over_b(1)
+              .move_a(7).over_b(1)
+              .move_a(6).over_b(1)
+              .pile_a(8).over_b(6)
+              .pile_a(8).over_b(5)
+              .move_a(2).over_b(1)
+              .move_a(4).over_b(9);
+        assert_eq!(
+            vec![
+                vec![0],
+                vec![1, 9, 2, 4],
+                vec![],
+                vec![3],
+                vec![],
+                vec![5, 8, 7, 6],
+                vec![],
+                vec![],
+                vec![],
+                vec![],
+            ],
+            blocks.world
+        );
+        assert_eq!(BlockState::Init, blocks.state);
+        assert_eq!(blocks.a, None);
+        assert_eq!(blocks.b, None);
     }
 }
