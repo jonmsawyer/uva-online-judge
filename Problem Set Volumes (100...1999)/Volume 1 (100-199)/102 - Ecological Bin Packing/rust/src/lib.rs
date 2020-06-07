@@ -79,7 +79,24 @@ impl Bins {
     /// bin order and smallest count of bottle transfers for each
     /// bin. If there is an error in parsing the input, output onto
     /// `io::stderr` an error message. When the user inputs "q",
-    /// "quit", or an empty line of input, quit the program.    
+    /// "quit", or an empty line of input, quit the program.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use std::io;
+    /// 
+    /// use rust::Bins;
+    /// 
+    /// fn main() -> std::io::Result<()> {
+    ///     let stdin = io::stdin();
+    ///     let mut _reader = stdin.lock();
+    ///     
+    ///     Bins::run(&mut _reader);
+    ///     
+    ///     Ok(())
+    /// }
+    /// ```
     pub fn run(mut buf: &mut impl io::BufRead) {
         loop {
             let bins = Bins::new(&mut buf);
@@ -274,16 +291,16 @@ impl Bins {
         let mut outputs = vec![          // E.g.: vec![
             self.bgc(),                  //           ("BGC",  4),
             self.bcg(),                  //           ("BCG", 10),
-            self.gbc(),                  //           ("GBC",  4),
+            self.gbc(),                  //           ("GBC",  2),
             self.gcb(),                  //           ("GCB",  2),
             self.cbg(),                  //           ("CBG",  8),
             self.cgb(),                  //           ("CGB", 10),
-        ];                               //        ];
+        ];                               //       ];
         
         //      sort               by count           by output
         outputs.sort_by(|a, b| a.1.cmp(&b.1).then(a.0.cmp(&b.0)));
         
-        (outputs[0].0.clone(), outputs[0].1) // E.g.: ("GCB", 2)
+        (outputs[0].0.clone(), outputs[0].1) // E.g.: ("GBC", 2)
     }
     
     /// Calculate the `BGC` bin arrangement. Finds the number of
