@@ -435,13 +435,3 @@ impl Bins {
         (output, 0)
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    
-    #[test]
-    fn new_bins() {
-        assert_eq!(1 + 1, 2);
-    }
-}
